@@ -1,5 +1,53 @@
 # Vite vs. Next + turbopack HMR Benchmark
 
+## How To Run
+
+```shell
+// same with next.js
+cd .\vite
+pnpm i
+node .\genFiles.js
+pnpm dev
+
+// new terminal
+node .\watch.js
+```
+
+Edit `App.jsx` :
+
+```jsx
+// from
+export default function App() {
+  return <div>
+	// ...
+	</div>
+}
+
+// to
+export default function App() {
+  return <div>
+	{Date.now()}
+	// ...
+	</div>
+}
+```
+
+Edit `comp0.jsx` :
+
+```jsx
+// from
+export function Comp0() {
+  return <div>hello 0</div>
+}
+
+// to
+export function Comp0() {
+  return <div>{Date.now())}</div>
+}
+```
+
+Compare the output timestamps.
+
 ## Methodology
 
 1. The two projects are created from the following commands:
@@ -8,15 +56,10 @@
    npx create-next-app@latest
    npm init vite@latest # select React preset
    ```
-
 2. `genFiles.(m)js` is run in each project to generate 1000 components. All components are imported in the app's root component (in Next's case, the root page component) and rendered together. This step is already done and the files are already checked in, but the script is included for reference.
-
 3. For Next, `app/page.js` has the `'use client'` directive so it renders in client mode. This is necessary to ensure proper comparison, since server components incurs non-trivial HMR overhead (4x slower).
-
 4. For Vite, we are using `vite-plugin-swc-react-refresh` so that the React JSX & HMR transform are using swc instead of Babel. The reason Vite's default React plugin uses Babel is because using swc results in 58MB of extra install weight (when Vite itself is 19MB) for marginal HMR improvement. However, for the purpose of benchmarking, we should use the same transforms turbopack is using so that the comparison is focused on the HMR mechanisms of the two tools.
-
 5. For each project, we run `watch.(m)js` in a separate Node process to get the exact timestamp of file change. This is used to mark the start of HMR.
-
 6. Start the projects (`vite` and `next dev --turbo`), then edit the following files to test HMR:
 
    - Next: `app/page.js` (root) and `app/comp0.jsx` (leaf)
